@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blob Bounce</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #0d0d1a;
+      font-family: sans-serif;
+      color: white;
+    }
+    canvas {
+      display: block;
+      background: #1a1a2e;
+    }
+    #ui {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+  <div id="ui">
+    <div>Score: <span id="score">0</span></div>
+    <div>Leaderboard:</div>
+    <ol id="leaderboard"></ol>
+  </div>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const blobs = [];
+    const powerUps = [];
+    let player = {
+      name: "YOU",
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      vx: 0,
+      vy: 0,
+      radius: 25,
+      color: "cyan",
+      score: 0
+    };
+
+    const keys = {};
+    window.addEventListener("keydown", e => keys[e.key] = true);
+    window.addEventListener("keyup", e => keys[e.key] = false);
+
+    function drawBlob(blob) {
+      ctx.beginPath();
+      ctx.ellipse(blob.x, blob.y + blob.radius + 5, blob.radius * 0.9, blob.radius * 0.4, 0, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(0,0,0,0.4)";
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(blob.x, blob.y, blob.radius, 0, Math.PI * 2);
+      ctx.fillStyle = blob.color;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(blob.x - blob.radius / 3, blob.y - blob.radius / 4, blob.radius / 6, 0, Math.PI * 2);
+      ctx.arc(blob.x + blob.radius / 3, blob.y - blob.radius / 4, blob.radius / 6, 0, Math.PI * 2);
+      ctx.fillStyle = "black";
+      ctx.fill();
+
+      ctx.fillStyle = "white";
+      ctx.fillText(blob.name || '', blob.x - blob.radius, blob.y + blob.radius + 12);
+    }
+
+    function drawPowerUp(p) {
+      ctx.beginPath();
+      ctx.rect(p.x - 10, p.y - 10, 20, 20);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (keys["ArrowUp"] || keys["w"]) player.vy -= 0.5;
+      if (keys["ArrowDown"] || keys["s"]) player.vy += 0.5;
+      if (keys["ArrowLeft"] || keys["a"]) player.vx -= 0.5;
+      if (keys["ArrowRight"] || keys["d"]) player.vx += 0.5;
+
+      player.vx *= 0.9;
+      player.vy *= 0.9;
+      player.x += player.vx;
+      player.y += player.vy;
+
+      drawBlob(player);
+      blobs.forEach(drawBlob);
+      powerUps.forEach(drawPowerUp);
+
+      document.getElementById("score").textContent = player.score;
+      requestAnimationFrame(gameLoop);
+    }
+
+    function spawnBlobs(n) {
+      for (let i = 0; i < n; i++) {
+        blobs.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: 15 + Math.random() * 10,
+          color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+          name: `Bot${i}`
+        });
+      }
+    }
+
+    function spawnPowerUps(n) {
+      for (let i = 0; i < n; i++) {
+        powerUps.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          color: "gold"
+        });
+      }
+    }
+
+    spawnBlobs(10);
+    spawnPowerUps(5);
+    gameLoop();
+  </script>
+</body>
+</html>
